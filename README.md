@@ -38,7 +38,7 @@ Uma API REST que atua como gateway para o Telegram. Com ela, você pode enviar, 
    TELEGRAM_API_ID=YOUR_TELEGRAM_API_ID
    TELEGRAM_API_HASH=YOUR_TELEGRAM_API_HASH
    STRING_SESSION=   # Deixe vazio para gerar uma nova sessão interativa
-   CHANNELS_SOURCE=feedgenerator.xyz,feedgenerator.xyz:3000,feedgenerator.tech
+   CHANNELS_SOURCE=CANAL1,CANAL2,CANAL3
    CHANNEL_TARGET=SeuCanalAlvo  # Nome do canal alvo (sem @)
 
    # Token de autenticação para proteger os endpoints da API
