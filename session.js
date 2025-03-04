@@ -3,8 +3,8 @@ import { StringSession } from 'telegram/sessions/index.js';
 import readline from "readline";
 
 const apiId = parseInt(process.env.TELEGRAM_API_ID);
-const apiHash = process.env.TELEGRAM_API_HASH.trim();
-const stringSession = new StringSession(process.env.STRING_SESSION.trim()); // fill this later with the value from session.save()
+const apiHash = process.env.TELEGRAM_API_HASH;
+const stringSession = new StringSession(process.env.STRING_SESSION); // fill this later with the value from session.save()
 
 const rl = readline.createInterface({
   input: process.stdin,
