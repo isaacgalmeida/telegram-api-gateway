@@ -1,4 +1,3 @@
-// server.js
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -12,7 +11,7 @@ const PORT = process.env.PORT || 3001;
 // Middleware para parse de JSON
 app.use(bodyParser.json());
 
-// Middleware de autenticação
+// Middleware de autenticação (Token simples via Header)
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || authHeader !== `Bearer ${process.env.AUTH_TOKEN}`) {
@@ -21,7 +20,6 @@ const authenticate = (req, res, next) => {
   next();
 };
 
-// Aplica autenticação a todas as rotas
 app.use(authenticate);
 
 // Variáveis do Telegram
@@ -31,22 +29,49 @@ const stringSession = new StringSession(process.env.STRING_SESSION.trim());
 const channels = process.env.CHANNELS_SOURCE.split(",");
 const channelTarget = process.env.CHANNEL_TARGET;
 
-// Instancia do TelegramClient
+// Instância do TelegramClient
 const client = new TelegramClient(stringSession, apiId, apiHash, {
   connectionRetries: 5,
 });
 
+// Função de autenticação com retry em caso de PHONE_CODE_EXPIRED
 (async () => {
   console.log("Starting Telegram client...");
-  await client.start({
-    // As chamadas interativas (phone, code, etc.) são solicitadas se a sessão não estiver ativa
-    phoneNumber: async () => await require("input").text("number ?"),
-    password: async () => await require("input").text("password?"),
-    phoneCode: async () => await require("input").text("Code ?"),
-    onError: (err) => console.log(err),
-  });
-  console.log("Telegram client connected.");
+  let authenticated = false;
+  while (!authenticated) {
+    try {
+      await client.start({
+        phoneNumber: async () => await require("input").text("number ? "),
+        password: async () => await require("input").text("password? "),
+        phoneCode: async () => await require("input").text("Code ? "),
+        onError: (err) => {
+          console.error("Error during authentication:", err.message);
+        },
+      });
+      authenticated = true;
+      console.log("Telegram client connected.");
+      console.log("String session:", client.session.save());
+    } catch (error) {
+      console.error("Authentication error:", error.message);
+      if (error.message.includes("PHONE_CODE_EXPIRED")) {
+        console.log("Phone code expired. Please request a new code and try again.");
+      } else {
+        console.log("Authentication failed with an unrecoverable error. Exiting.");
+        process.exit(1);
+      }
+    }
+  }
 })();
+
+// Endpoint para retornar a string_session
+app.get("/session", (req, res) => {
+  try {
+    const currentSession = client.session.save();
+    res.json({ stringSession: currentSession });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Endpoint para enviar mensagem para o canal target
 app.post("/send-message", async (req, res) => {
@@ -96,7 +121,7 @@ app.get("/get-messages", async (req, res) => {
   }
 });
 
-// Rota de health-check (opcional, não requer autenticação)
+// Rota de health-check (opcional)
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
