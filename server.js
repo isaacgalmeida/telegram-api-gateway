@@ -86,15 +86,6 @@ client.addEventHandler((event) => {
   }
 }, new NewMessage({}));
 
-// Endpoint para retornar a string_session
-app.get("/session", (req, res) => {
-  try {
-    const currentSession = client.session.save();
-    res.json({ stringSession: currentSession });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
 // Endpoint para enviar mensagem para o canal target
 app.post("/send-message", async (req, res) => {
