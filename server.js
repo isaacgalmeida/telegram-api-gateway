@@ -1,0 +1,107 @@
+// server.js
+require("dotenv").config();
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
+const { Api, TelegramClient } = require("telegram");
+const { StringSession } = require("telegram/sessions");
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Middleware para parse de JSON
+app.use(bodyParser.json());
+
+// Middleware de autenticação
+const authenticate = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || authHeader !== `Bearer ${process.env.AUTH_TOKEN}`) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  next();
+};
+
+// Aplica autenticação a todas as rotas
+app.use(authenticate);
+
+// Variáveis do Telegram
+const apiId = parseInt(process.env.TELEGRAM_API_ID.trim());
+const apiHash = process.env.TELEGRAM_API_HASH.trim();
+const stringSession = new StringSession(process.env.STRING_SESSION.trim());
+const channels = process.env.CHANNELS_SOURCE.split(",");
+const channelTarget = process.env.CHANNEL_TARGET;
+
+// Instancia do TelegramClient
+const client = new TelegramClient(stringSession, apiId, apiHash, {
+  connectionRetries: 5,
+});
+
+(async () => {
+  console.log("Starting Telegram client...");
+  await client.start({
+    // As chamadas interativas (phone, code, etc.) são solicitadas se a sessão não estiver ativa
+    phoneNumber: async () => await require("input").text("number ?"),
+    password: async () => await require("input").text("password?"),
+    phoneCode: async () => await require("input").text("Code ?"),
+    onError: (err) => console.log(err),
+  });
+  console.log("Telegram client connected.");
+})();
+
+// Endpoint para enviar mensagem para o canal target
+app.post("/send-message", async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: "Message text is required" });
+    }
+    const sentMessage = await client.sendMessage(`@${channelTarget}`, {
+      message: message,
+      parseMode: "html",
+    });
+    res.json({ success: true, messageId: sentMessage.id });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint para editar uma mensagem existente
+app.put("/edit-message", async (req, res) => {
+  try {
+    const { messageId, newText } = req.body;
+    if (!messageId || !newText) {
+      return res.status(400).json({ error: "Message ID and new text are required" });
+    }
+    await client.editMessage(`@${channelTarget}`, {
+      message: messageId,
+      text: newText,
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint para buscar as 10 mensagens mais recentes do canal target
+app.get("/get-messages", async (req, res) => {
+  try {
+    const messages = await client.getMessages(`@${channelTarget}`, { limit: 10 });
+    res.json(messages.map((msg) => ({
+      id: msg.id,
+      text: msg.message,
+      date: msg.date,
+    })));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Rota de health-check (opcional, não requer autenticação)
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+// Inicia o servidor Express
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

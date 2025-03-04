@@ -1,0 +1,15 @@
+services:
+  telegram-api:
+    build: .
+    container_name: telegram-api
+    ports:
+      - "3002:3001"
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
