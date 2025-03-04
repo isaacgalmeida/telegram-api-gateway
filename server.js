@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const fs = require("fs");
 const { Api, TelegramClient } = require("telegram");
 const { StringSession } = require("telegram/sessions");
+const { NewMessage } = require("telegram/events");
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -58,7 +59,6 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       console.error("Authentication error:", error.message);
       if (error.message.includes("PHONE_CODE_EXPIRED")) {
         console.log("Phone code expired. Waiting 3 seconds and retrying using the same MTProto instance...");
-        // NÃO desconecta o cliente; apenas aguarda e tenta novamente
         await sleep(3000);
         continue;
       } else {
@@ -68,6 +68,23 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     }
   }
 })();
+
+// Array para armazenar novas mensagens recebidas
+let newMessages = [];
+
+// Event handler para capturar novas mensagens do Telegram
+client.addEventHandler((event) => {
+  const message = event.message;
+  if (message) {
+    const msgObj = {
+      id: message.id,
+      text: message.message,
+      date: message.date,
+    };
+    console.log("New message received:", msgObj);
+    newMessages.push(msgObj);
+  }
+}, new NewMessage({}));
 
 // Endpoint para retornar a string_session
 app.get("/session", (req, res) => {
@@ -113,10 +130,11 @@ app.put("/edit-message", async (req, res) => {
   }
 });
 
-// Endpoint para buscar as 10 mensagens mais recentes do canal target
+// Endpoint para buscar mensagens do canal target com parâmetro "limit"
 app.get("/get-messages", async (req, res) => {
   try {
-    const messages = await client.getMessages(`@${channelTarget}`, { limit: 10 });
+    const limit = parseInt(req.query.limit) || 10;
+    const messages = await client.getMessages(`@${channelTarget}`, { limit });
     res.json(
       messages.map((msg) => ({
         id: msg.id,
@@ -127,6 +145,11 @@ app.get("/get-messages", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Novo endpoint para retornar as mensagens recebidas (armazenadas em memória)
+app.get("/new-messages", (req, res) => {
+  res.json(newMessages);
 });
 
 // Rota de health-check (opcional)
