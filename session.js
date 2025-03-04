@@ -2,7 +2,7 @@ import { TelegramClient } from "telegram";
 import { StringSession } from 'telegram/sessions/index.js';
 import readline from "readline";
 
-const apiId = parseInt(process.env.TELEGRAM_API_ID.trim());
+const apiId = parseInt(process.env.TELEGRAM_API_ID);
 const apiHash = process.env.TELEGRAM_API_HASH.trim();
 const stringSession = new StringSession(process.env.STRING_SESSION.trim()); // fill this later with the value from session.save()
 
