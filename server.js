@@ -3,8 +3,8 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import fs from 'fs';
 import { Api, TelegramClient } from 'telegram';
-import { StringSession } from 'telegram/sessions';
-import { NewMessage } from 'telegram/events';
+import { StringSession } from 'telegram/sessions/index.js';
+import { NewMessage } from 'telegram/events/index.js';
 import input from 'input';
 
 const app = express();
