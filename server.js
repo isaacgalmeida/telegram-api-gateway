@@ -9,6 +9,14 @@ const { NewMessage } = require("telegram/events");
 const app = express();
 const PORT = process.env.PORT || 3002;
 
+// Variáveis do Telegram
+const apiId = parseInt(process.env.TELEGRAM_API_ID.trim());
+const apiHash = process.env.TELEGRAM_API_HASH.trim();
+const stringSession = new StringSession(process.env.STRING_SESSION.trim());
+console.log(stringSession)
+const channels = process.env.CHANNELS_SOURCE.split(",");
+const channelTarget = process.env.CHANNEL_TARGET;
+
 // Middleware para parse de JSON
 app.use(bodyParser.json());
 
@@ -22,14 +30,6 @@ const authenticate = (req, res, next) => {
 };
 
 app.use(authenticate);
-
-// Variáveis do Telegram
-const apiId = parseInt(process.env.TELEGRAM_API_ID.trim());
-const apiHash = process.env.TELEGRAM_API_HASH.trim();
-const stringSession = new StringSession(process.env.STRING_SESSION.trim());
-console.log(stringSession)
-const channels = process.env.CHANNELS_SOURCE.split(",");
-const channelTarget = process.env.CHANNEL_TARGET;
 
 // Instância do TelegramClient (mantida única durante o fluxo de autenticação)
 const client = new TelegramClient(stringSession, apiId, apiHash, {
