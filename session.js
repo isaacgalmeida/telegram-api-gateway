@@ -28,7 +28,9 @@ const rl = readline.createInterface({
       ),
     phoneCode: async () =>
       new Promise((resolve) =>
-        rl.question("Please enter the code you received: ", resolve)
+        rl.question("Please enter the code you received: ", (answer) =>
+          resolve(answer.trim())
+        )
       ),
     onError: (err) => console.log(err),
   });
