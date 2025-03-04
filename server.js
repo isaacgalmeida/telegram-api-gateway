@@ -1,13 +1,5 @@
 require("dotenv").config();
-const express = require("express");
-const bodyParser = require("body-parser");
-const fs = require("fs");
-const { Api, TelegramClient } = require("telegram");
-const { StringSession } = require("telegram/sessions");
-const { NewMessage } = require("telegram/events");
 
-const app = express();
-const PORT = process.env.PORT || 3002;
 
 // Variáveis do Telegram
 const apiId = parseInt(process.env.TELEGRAM_API_ID.trim());
