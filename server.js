@@ -1,10 +1,11 @@
-require("dotenv").config();
-const express = require("express");
-const bodyParser = require("body-parser");
-const fs = require("fs");
-const { Api, TelegramClient } = require("telegram");
-const { StringSession } = require("telegram/sessions");
-const { NewMessage } = require("telegram/events");
+import 'dotenv/config';
+import express from 'express';
+import bodyParser from 'body-parser';
+import fs from 'fs';
+import { Api, TelegramClient } from 'telegram';
+import { StringSession } from 'telegram/sessions';
+import { NewMessage } from 'telegram/events';
+import input from 'input';
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -47,9 +48,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   while (!authenticated) {
     try {
       await client.start({
-        phoneNumber: async () => await require("input").text("number ? "),
-        password: async () => await require("input").text("password? "),
-        phoneCode: async () => await require("input").text("Code ? "),
+        phoneNumber: async () => await input.text("number ? "),
+        password: async () => await input.text("password? "),
+        phoneCode: async () => await input.text("Code ? "),
         onError: (err) => {
           console.error("Error during authentication:", err.message);
         },
@@ -87,7 +88,6 @@ client.addEventHandler((event) => {
     newMessages.push(msgObj);
   }
 }, new NewMessage({}));
-
 
 // Endpoint para enviar mensagem para o canal target
 app.post("/send-message", async (req, res) => {

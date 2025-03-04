@@ -1,34 +1,17 @@
 {
-    "name": "telebridge-api",
-    "version": "1.0.0",
-    "description": "REST API to interact with Telegram via HTTP endpoints using Express and the Telegram API.",
-    "main": "server.js",
-    "scripts": {
-      "start": "node server.js"
-    },
-    "repository": {
-      "type": "git",
-      "url": "https://github.com/isaacgalmeida/telebridge-api.git"
-    },
-    "keywords": [
-      "telegram",
-      "api",
-      "express",
-      "rest",
-      "nodejs"
-    ],
-    "author": "Seu Nome",
-    "license": "MIT",
-    "bugs": {
-      "url": "https://github.com/isaacgalmeida/telebridge-api/issues"
-    },
-    "homepage": "https://github.com/isaacgalmeida/telebridge-api#readme",
-    "dependencies": {
-      "body-parser": "^1.20.1",
-      "dotenv": "^16.0.3",
-      "express": "^4.18.2",
-      "input": "^1.0.1",
-      "telegram": "^2.26.22"
-    }
+  "name": "telegram-api-gateway",
+  "version": "1.0.0",
+  "description": "Gateway para a API do Telegram",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2",
+    "body-parser": "^1.20.1",
+    "telegram": "^2.0.0",
+    "input": "^2.0.0"
   }
-  
+}
