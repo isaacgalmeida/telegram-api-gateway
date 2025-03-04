@@ -29,15 +29,15 @@ const stringSession = new StringSession(process.env.STRING_SESSION.trim());
 const channels = process.env.CHANNELS_SOURCE.split(",");
 const channelTarget = process.env.CHANNEL_TARGET;
 
-// Instância do TelegramClient
+// Instância do TelegramClient (mantida única durante o fluxo de autenticação)
 const client = new TelegramClient(stringSession, apiId, apiHash, {
   connectionRetries: 5,
 });
 
-// Função para aguardar um tempo (em milissegundos)
+// Função de aguardar (em milissegundos)
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Loop de autenticação com tratamento para PHONE_CODE_EXPIRED
+// Loop de autenticação sem desconectar o cliente em caso de PHONE_CODE_EXPIRED
 (async () => {
   console.log("Starting Telegram client...");
   let authenticated = false;
@@ -57,15 +57,12 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     } catch (error) {
       console.error("Authentication error:", error.message);
       if (error.message.includes("PHONE_CODE_EXPIRED")) {
-        console.log("Phone code expired. Disconnecting, waiting 3 seconds, and requesting a new code...");
-        // Desconecta para limpar o estado
-        await client.disconnect();
-        // Aguarda 3 segundos
+        console.log("Phone code expired. Waiting 3 seconds and retrying using the same MTProto instance...");
+        // NÃO desconecta o cliente; apenas aguarda e tenta novamente
         await sleep(3000);
-        // O loop continuará e chamará client.start() novamente, o que reenvia o código
         continue;
       } else {
-        console.log("Authentication failed with an unrecoverable error. Exiting.");
+        console.log("Unrecoverable error. Exiting.");
         process.exit(1);
       }
     }
