@@ -16,6 +16,8 @@ const stringSession = new StringSession(process.env.STRING_SESSION.trim());
 const channels = process.env.CHANNELS_SOURCE.split(",");
 const channelTarget = process.env.CHANNEL_TARGET;
 
+console.log("Session string:", `[${process.env.STRING_SESSION.trim()}]`);
+
 // Middleware para parse de JSON
 app.use(bodyParser.json());
 
