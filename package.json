@@ -12,6 +12,6 @@
     "express": "^4.18.2",
     "body-parser": "^1.20.1",
     "telegram": "^2.0.0",
-    "input": "^2.0.0"
+    "input": "^1.0.1"
   }
 }
