@@ -6,7 +6,7 @@ const { Api, TelegramClient } = require("telegram");
 const { StringSession } = require("telegram/sessions");
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Middleware para parse de JSON
 app.use(bodyParser.json());
@@ -34,7 +34,10 @@ const client = new TelegramClient(stringSession, apiId, apiHash, {
   connectionRetries: 5,
 });
 
-// Função de autenticação com retry em caso de PHONE_CODE_EXPIRED
+// Função para aguardar um tempo (em milissegundos)
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Loop de autenticação com tratamento para PHONE_CODE_EXPIRED
 (async () => {
   console.log("Starting Telegram client...");
   let authenticated = false;
@@ -54,7 +57,13 @@ const client = new TelegramClient(stringSession, apiId, apiHash, {
     } catch (error) {
       console.error("Authentication error:", error.message);
       if (error.message.includes("PHONE_CODE_EXPIRED")) {
-        console.log("Phone code expired. Please request a new code and try again.");
+        console.log("Phone code expired. Disconnecting, waiting 3 seconds, and requesting a new code...");
+        // Desconecta para limpar o estado
+        await client.disconnect();
+        // Aguarda 3 segundos
+        await sleep(3000);
+        // O loop continuará e chamará client.start() novamente, o que reenvia o código
+        continue;
       } else {
         console.log("Authentication failed with an unrecoverable error. Exiting.");
         process.exit(1);
@@ -111,11 +120,13 @@ app.put("/edit-message", async (req, res) => {
 app.get("/get-messages", async (req, res) => {
   try {
     const messages = await client.getMessages(`@${channelTarget}`, { limit: 10 });
-    res.json(messages.map((msg) => ({
-      id: msg.id,
-      text: msg.message,
-      date: msg.date,
-    })));
+    res.json(
+      messages.map((msg) => ({
+        id: msg.id,
+        text: msg.message,
+        date: msg.date,
+      }))
+    );
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
