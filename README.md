@@ -1,7 +1,3 @@
-Segue abaixo um exemplo de README.md para o projeto:
-
----
-
 # TeleBridge API
 
 Uma API REST que atua como gateway para o Telegram. Com ela, você pode enviar, editar e recuperar mensagens de um canal específico, além de obter a _string_session_ necessária para autenticação. Essa API utiliza o [TelegramClient](https://github.com/gram-js/gramjs) (baseado no gramJS) e o [Express](https://expressjs.com/) para expor endpoints HTTP seguros.
@@ -12,8 +8,9 @@ Uma API REST que atua como gateway para o Telegram. Com ela, você pode enviar, 
 - **Endpoints Protegidos:** Todos os endpoints (exceto `/health`) exigem um token de autenticação para garantir segurança.
 - **Envio de Mensagens:** Envia mensagens para um canal alvo.
 - **Edição de Mensagens:** Edita mensagens já enviadas.
-- **Recuperação de Mensagens:** Busca as 10 mensagens mais recentes do canal alvo.
-- **Recuperação da String Session:** Retorna a _string_session_ atual para que você possa usá-la no `.env`.
+- **Recuperação de Mensagens:** Busca as mensagens mais recentes do canal alvo, com limite personalizável.
+- **Recebimento de Novas Mensagens:** Captura as novas mensagens que chegam no Telegram e as disponibiliza via o endpoint `/new-messages`.
+- **Recuperação da String Session:** Retorna a _string_session_ atual para que você possa utilizá-la no seu arquivo `.env`.
 
 ## Pré-requisitos
 
@@ -49,8 +46,8 @@ Uma API REST que atua como gateway para o Telegram. Com ela, você pode enviar, 
    ```
 
    **Observação:**  
-   - Substitua `YOUR_TELEGRAM_API_ID` e `YOUR_TELEGRAM_API_HASH` pelas credenciais que você gerou em [https://my.telegram.org](https://my.telegram.org).  
-   - Defina `CHANNELS_SOURCE` e `CHANNEL_TARGET` conforme sua necessidade.  
+   - Substitua `YOUR_TELEGRAM_API_ID` e `YOUR_TELEGRAM_API_HASH` pelas credenciais geradas em [https://my.telegram.org](https://my.telegram.org).  
+   - Configure `CHANNELS_SOURCE` e `CHANNEL_TARGET` conforme sua necessidade.  
    - Defina um token seguro para `AUTH_TOKEN`.
 
 3. **Instale as dependências:**
@@ -102,8 +99,19 @@ curl -X PUT http://localhost:3002/edit-message \
 
 **Recuperar Mensagens:**
 
+Você pode definir o número de mensagens a serem recuperadas usando o parâmetro de query `limit` (o padrão é 10, se não especificado):
+
 ```bash
-curl -X GET http://localhost:3002/get-messages \
+curl -X GET "http://localhost:3002/get-messages?limit=20" \
+     -H "Authorization: Bearer your_secret_token_here"
+```
+
+**Obter Novas Mensagens:**
+
+As novas mensagens capturadas pelo event handler podem ser acessadas via:
+
+```bash
+curl -X GET http://localhost:3002/new-messages \
      -H "Authorization: Bearer your_secret_token_here"
 ```
 
@@ -130,11 +138,8 @@ curl -X GET http://localhost:3002/health
 
 ## Contribuição
 
-Pull requests são bem-vindos! Para grandes mudanças, por favor abra uma _issue_ primeiro para discutir o que você gostaria de alterar.
+Pull requests são bem-vindos! Para grandes mudanças, por favor, abra uma _issue_ primeiro para discutir o que você gostaria de alterar.
 
 ## Licença
 
 Este projeto é licenciado sob a [MIT License](LICENSE).
-
----
-
